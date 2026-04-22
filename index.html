@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZATRANO AI Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --zatrano-red:        #df2123;
+  --zatrano-red-dark:   #b81a1c;
+  --zatrano-red-darker: #8f1517;
+  --zatrano-red-light:  #e84345;
+  --zatrano-red-glow:   rgba(223,33,35,0.5);
+  --dark-bg:            #0a0a0b;
+  --dark-surface:       #111113;
+  --dark-elevated:      #18181b;
+  --dark-border:        rgba(255,255,255,0.06);
+  --text-primary:       #fafafa;
+  --text-secondary:     #a1a1aa;
+  --text-muted:         #71717a;
+  --code-bg:            #09090b;
+  --accent-green:       #10b981;
+  --accent-blue:        #3b82f6;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--dark-bg);
+  color:var(--text-primary);
+  display:flex;flex-direction:column;
+}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:52px;
+  background:var(--dark-surface);
+  border-bottom:1px solid var(--dark-border);
+  flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{
+  width:32px;height:32px;
+  background:var(--zatrano-red);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  box-shadow:0 0 12px var(--zatrano-red-glow);
+}
+.logo-name{
+  font-family:'Audiowide',sans-serif;
+  font-size:15px;
+  color:var(--text-primary);
+  letter-spacing:0.5px;
+}
+.logo-name span{color:var(--zatrano-red)}
+.hdr-badges{display:flex;align-items:center;gap:8px}
+.badge{
+  display:flex;align-items:center;gap:5px;
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--text-muted);
+  padding:3px 10px;
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  border-radius:20px;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--zatrano-red)}
+.dot.on{background:var(--accent-green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.rbadge{
+  font-size:11px;font-family:'Audiowide',sans-serif;
+  color:var(--zatrano-red);
+  padding:3px 10px;
+  background:rgba(223,33,35,.08);
+  border:1px solid rgba(223,33,35,.2);
+  border-radius:20px;
+}
+.gbadge{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--accent-green);
+  padding:3px 10px;
+  background:rgba(16,185,129,.08);
+  border:1px solid rgba(16,185,129,.2);
+  border-radius:20px;
+}
+.autowrite-badge{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--accent-green);
+  padding:3px 10px;
+  background:rgba(16,185,129,.08);
+  border:1px solid rgba(16,185,129,.3);
+  border-radius:20px;
+  cursor:pointer;
+  transition:all .2s;
+  display:none;
+}
+.autowrite-badge.active{display:flex;align-items:center;gap:4px}
+.autowrite-badge:hover{background:rgba(16,185,129,.15)}
+
+/* ── LAYOUT ── */
+.main{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sb{
+  width:228px;
+  background:var(--dark-surface);
+  border-right:1px solid var(--dark-border);
+  display:flex;flex-direction:column;
+  flex-shrink:0;overflow:hidden;
+}
+.sb-sec{padding:12px 10px;border-bottom:1px solid var(--dark-border)}
+.sb-lbl{
+  font-size:9px;font-weight:600;
+  color:var(--text-muted);
+  letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:8px;padding:0 4px;
+}
+.mb{
+  display:flex;align-items:center;gap:9px;
+  width:100%;padding:7px 10px;
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:7px;
+  color:var(--text-muted);
+  font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:500;
+  cursor:pointer;text-align:left;
+  transition:all .15s;
+  margin-bottom:2px;
+}
+.mb:hover{background:var(--dark-elevated);color:var(--text-primary)}
+.mb.active{
+  background:rgba(223,33,35,.1);
+  color:var(--zatrano-red-light);
+  border-color:rgba(223,33,35,.2);
+}
+.mi{font-size:14px;width:18px;text-align:center}
+.sb-hist{flex:1;overflow-y:auto;padding:10px}
+.hi{padding:8px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:background .15s}
+.hi:hover{background:var(--dark-elevated)}
+.hi-title{
+  font-size:11px;color:var(--text-secondary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.hi-meta{font-size:10px;color:var(--text-muted);margin-top:2px}
+.sb-foot{padding:10px;border-top:1px solid var(--dark-border);display:flex;flex-direction:column;gap:5px}
+.sb-btn{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:7px 10px;
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  border-radius:7px;
+  color:var(--text-muted);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+}
+.sb-btn:hover{color:var(--text-primary);border-color:rgba(255,255,255,.12)}
+.sb-btn.danger:hover{color:var(--zatrano-red-light);border-color:rgba(223,33,35,.3)}
+.sb-btn.success:hover{color:var(--accent-green);border-color:rgba(16,185,129,.3)}
+
+/* ── CONTENT ── */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── MESSAGES ── */
+.msgs{
+  flex:1;overflow-y:auto;
+  padding:20px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.msg{display:flex;gap:10px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.av{
+  width:30px;height:30px;
+  border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.msg.user .av{background:var(--zatrano-red);box-shadow:0 0 8px var(--zatrano-red-glow)}
+.msg.agent .av{background:var(--dark-elevated);border:1px solid var(--dark-border)}
+.mbody{max-width:76%;display:flex;flex-direction:column;gap:5px}
+.msg.user .mbody{align-items:flex-end}
+.msender{font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:.3px}
+.bubble{
+  padding:12px 15px;
+  border-radius:12px;
+  font-size:13px;
+  line-height:1.65;
+  word-break:break-word;
+}
+.msg.user .bubble{
+  background:rgba(223,33,35,.12);
+  border:1px solid rgba(223,33,35,.2);
+  border-radius:12px 12px 3px 12px;
+  color:var(--text-primary);
+}
+.msg.agent .bubble{
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  border-radius:12px 12px 12px 3px;
+  color:var(--text-primary);
+}
+
+/* ── CODE BLOCKS ── */
+.cb{
+  margin:10px 0;
+  border-radius:8px;
+  overflow:hidden;
+  border:1px solid var(--dark-border);
+  background:var(--code-bg);
+}
+.ch{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 12px;
+  background:rgba(255,255,255,.03);
+  border-bottom:1px solid var(--dark-border);
+  font-size:10px;
+}
+.clang{
+  color:var(--zatrano-red-light);
+  font-family:'JetBrains Mono',monospace;
+  font-weight:600;font-size:10px;
+}
+.ch-right{display:flex;gap:6px;align-items:center}
+.cpbtn{
+  background:none;border:none;
+  color:var(--text-muted);
+  cursor:pointer;font-size:10px;
+  font-family:'JetBrains Mono',monospace;
+  padding:2px 8px;border-radius:4px;
+  transition:all .15s;
+}
+.cpbtn:hover{background:var(--dark-elevated);color:var(--text-primary)}
+.cc{
+  padding:12px 14px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;line-height:1.7;
+  overflow-x:auto;white-space:pre;
+  color:#a5f3fc;
+}
+
+/* ── DIFF PANEL ── */
+.diff-panel{
+  margin-top:10px;
+  border:1px solid var(--dark-border);
+  border-radius:8px;
+  overflow:hidden;
+}
+.diff-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;
+  background:rgba(255,255,255,.03);
+  cursor:pointer;
+  font-size:11px;color:var(--text-secondary);
+}
+.diff-toggle:hover{background:rgba(255,255,255,.05)}
+.diff-content{display:none;max-height:300px;overflow-y:auto}
+.diff-content.open{display:block}
+
+/* diff lines */
+.diff-wrap{font-family:'JetBrains Mono',monospace;font-size:11px}
+.diff-header{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;
+  background:rgba(255,255,255,.03);
+  border-bottom:1px solid var(--dark-border);
+}
+.diff-path{color:var(--text-secondary);font-weight:600}
+.diff-badge{padding:1px 6px;border-radius:3px;font-size:10px}
+.diff-badge.new{background:rgba(16,185,129,.15);color:var(--accent-green)}
+.diff-badge.same{background:rgba(255,255,255,.06);color:var(--text-muted)}
+.diff-badge.add{background:rgba(16,185,129,.15);color:var(--accent-green)}
+.diff-badge.del{background:rgba(239,68,68,.15);color:#f87171}
+.diff-body{padding:4px 0}
+.diff-line{display:flex;gap:0;line-height:1.5}
+.diff-line.add{background:rgba(16,185,129,.08)}
+.diff-line.del{background:rgba(239,68,68,.08)}
+.diff-ln{
+  min-width:60px;padding:0 8px;
+  color:var(--text-muted);font-size:10px;
+  border-right:1px solid var(--dark-border);
+  user-select:none;
+}
+.diff-sign{
+  min-width:16px;padding:0 4px;
+  color:var(--text-muted);
+}
+.diff-line.add .diff-sign{color:var(--accent-green)}
+.diff-line.del .diff-sign{color:#f87171}
+.diff-code{padding:0 8px;flex:1;white-space:pre;overflow-x:auto}
+.diff-line.add .diff-code{color:#86efac}
+.diff-line.del .diff-code{color:#fca5a5;text-decoration:line-through}
+
+/* ── FILE LIST AFTER GENERATION ── */
+.files-panel{
+  margin-top:8px;
+  background:rgba(223,33,35,.05);
+  border:1px solid rgba(223,33,35,.15);
+  border-radius:8px;
+  padding:10px 12px;
+}
+.files-title{
+  font-size:11px;font-weight:600;
+  color:var(--zatrano-red-light);
+  margin-bottom:8px;
+  font-family:'JetBrains Mono',monospace;
+}
+.file-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.file-row:last-child{border-bottom:none}
+.file-path{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text-secondary);
+  display:flex;align-items:center;gap:6px;
+}
+.file-actions{display:flex;gap:5px}
+.file-btn{
+  padding:2px 8px;font-size:10px;
+  font-family:'JetBrains Mono',monospace;
+  border-radius:4px;cursor:pointer;border:1px solid;
+  transition:all .15s;
+}
+.file-btn.write{
+  background:rgba(16,185,129,.1);
+  border-color:rgba(16,185,129,.3);
+  color:var(--accent-green);
+}
+.file-btn.write:hover{background:rgba(16,185,129,.2)}
+.file-btn.diff{
+  background:rgba(59,130,246,.1);
+  border-color:rgba(59,130,246,.3);
+  color:var(--accent-blue);
+}
+.file-btn.diff:hover{background:rgba(59,130,246,.2)}
+.write-all-btn{
+  margin-top:8px;
+  width:100%;padding:6px;
+  font-size:11px;font-family:'Inter',sans-serif;font-weight:600;
+  background:var(--zatrano-red);
+  border:none;border-radius:6px;
+  color:white;cursor:pointer;
+  transition:opacity .15s;
+}
+.write-all-btn:hover{opacity:.85}
+
+/* ── ACTION BUTTONS ── */
+.abts{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.abt{
+  padding:4px 12px;border-radius:5px;font-size:11px;
+  font-family:'Inter',sans-serif;font-weight:500;
+  cursor:pointer;border:1px solid;transition:all .15s;
+}
+.abt.p{background:rgba(223,33,35,.1);border-color:rgba(223,33,35,.3);color:var(--zatrano-red-light)}
+.abt.p:hover{background:rgba(223,33,35,.2)}
+.abt.s{background:transparent;border-color:var(--dark-border);color:var(--text-muted)}
+.abt.s:hover{color:var(--text-primary);border-color:rgba(255,255,255,.15)}
+.sysmsg{
+  text-align:center;font-size:11px;
+  color:var(--text-muted);padding:4px 0;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ── WELCOME ── */
+.welcome{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:20px;padding:40px;text-align:center;
+}
+.wlogo{
+  width:64px;height:64px;
+  background:var(--zatrano-red);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;
+  box-shadow:0 0 30px var(--zatrano-red-glow);
+}
+.wtitle{
+  font-family:'Audiowide',sans-serif;
+  font-size:28px;color:var(--text-primary);
+  line-height:1.2;
+}
+.wtitle span{color:var(--zatrano-red)}
+.wsub{
+  font-size:13px;color:var(--text-secondary);
+  max-width:420px;line-height:1.7;font-weight:400;
+}
+.wcards{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;width:100%;max-width:580px;
+}
+.wcard{
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  border-radius:10px;padding:16px;
+  cursor:pointer;transition:all .2s;text-align:left;
+}
+.wcard:hover{
+  border-color:rgba(223,33,35,.3);
+  background:rgba(223,33,35,.05);
+  transform:translateY(-2px);
+  box-shadow:0 4px 20px rgba(223,33,35,.1);
+}
+.wci{font-size:20px;margin-bottom:8px}
+.wct{font-size:12px;color:var(--text-primary);font-weight:600;margin-bottom:4px}
+.wcd{font-size:11px;color:var(--text-muted);line-height:1.5}
+
+/* ── QUICK BAR ── */
+.qbar{
+  padding:8px 18px;
+  border-top:1px solid var(--dark-border);
+  display:flex;gap:6px;flex-wrap:wrap;
+  background:var(--dark-surface);flex-shrink:0;
+}
+.qchip{
+  padding:4px 12px;border-radius:20px;
+  font-size:11px;font-family:'Inter',sans-serif;font-weight:500;
+  cursor:pointer;
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  color:var(--text-muted);
+  transition:all .15s;white-space:nowrap;
+}
+.qchip:hover{
+  color:var(--zatrano-red-light);
+  border-color:rgba(223,33,35,.3);
+  background:rgba(223,33,35,.05);
+}
+
+/* ── INPUT ── */
+.iarea{
+  padding:12px 18px;
+  background:var(--dark-surface);
+  border-top:1px solid var(--dark-border);
+  flex-shrink:0;
+}
+.iwrap{
+  display:flex;gap:10px;align-items:flex-end;
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  border-radius:12px;padding:10px 12px;
+  transition:border-color .2s;
+}
+.iwrap:focus-within{border-color:rgba(223,33,35,.4)}
+textarea{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text-primary);
+  font-family:'Inter',sans-serif;font-size:13px;
+  resize:none;line-height:1.5;max-height:120px;
+}
+textarea::placeholder{color:var(--text-muted)}
+.sbtn{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--zatrano-red);
+  border:none;color:white;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  transition:all .15s;
+  box-shadow:0 0 12px var(--zatrano-red-glow);
+}
+.sbtn:hover{opacity:.85;transform:scale(1.05)}
+.sbtn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ── TYPING ── */
+.typing{display:flex;gap:4px;align-items:center;padding:10px 14px}
+.td{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--zatrano-red);
+  animation:bounce 1.2s infinite;
+}
+.td:nth-child(2){animation-delay:.2s}
+.td:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+
+code{
+  background:rgba(223,33,35,.1);
+  color:var(--zatrano-red-light);
+  padding:1px 5px;border-radius:3px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+}
+strong{color:var(--text-primary);font-weight:700}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:80px;right:20px;
+  padding:10px 16px;border-radius:8px;
+  font-size:12px;font-weight:500;
+  background:var(--dark-elevated);
+  border:1px solid var(--dark-border);
+  color:var(--text-primary);
+  opacity:0;transform:translateY(10px);
+  transition:all .3s;pointer-events:none;
+  z-index:100;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:rgba(16,185,129,.4);color:var(--accent-green)}
+.toast.error{border-color:rgba(223,33,35,.4);color:var(--zatrano-red-light)}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-name">ZATRANO <span>AI</span></div>
+  </div>
+  <div class="hdr-badges">
+    <div class="badge"><div class="dot" id="dot"></div><span id="stxt">Kontrol...</span></div>
+    <div class="rbadge" id="mbadge">—</div>
+    <div class="gbadge" id="fbadge">0 dosya</div>
+    <div class="autowrite-badge" id="awbadge" onclick="toggleAutoWrite()">✍️ Auto-Write ON</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-sec">
+      <div class="sb-lbl">Mod</div>
+      <button class="mb active" onclick="setMode('generate',this)"><span class="mi">🏗️</span>Kod Üret</button>
+      <button class="mb" onclick="setMode('explain',this)"><span class="mi">📖</span>Açıkla</button>
+      <button class="mb" onclick="setMode('debug',this)"><span class="mi">🐛</span>Hata Bul</button>
+      <button class="mb" onclick="setMode('review',this)"><span class="mi">🔍</span>İncele</button>
+      <button class="mb" onclick="setMode('free',this)"><span class="mi">💬</span>Serbest</button>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-lbl">Dosya</div>
+      <button class="sb-btn success" onclick="toggleAutoWrite()" id="awBtn">
+        <span>💾</span> Auto-Write: KAPALI
+      </button>
+    </div>
+
+    <div class="sb-hist" id="hist">
+      <div class="sb-lbl">Geçmiş</div>
+    </div>
+
+    <div class="sb-foot">
+      <button class="sb-btn" onclick="reloadProject()">🔄 Projeyi Yenile</button>
+      <button class="sb-btn danger" onclick="clearHistory()">🗑️ Geçmişi Temizle</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="msgs" id="msgs">
+      <div class="welcome" id="welcome">
+        <div class="wlogo">⚡</div>
+        <div class="wtitle">ZATRANO <span>AI</span></div>
+        <div class="wsub">
+          Zatrano'nun gerçek kaynak kodunu okuyarak çalışan local AI geliştirici asistanı.
+          RAG ile akıllı dosya seçimi, otomatik diff ve doğrudan yazma desteği.
+        </div>
+        <div class="wcards">
+          <div class="wcard" onclick="quick('Order adinda modul olustur. Fields: UserID uint, Amount float64, Status string, IsActive bool. Tum katmanlari uret: model, repository, service, handler, route ve container guncelleme.')">
+            <div class="wci">🏗️</div>
+            <div class="wct">Modül Üret</div>
+            <div class="wcd">Model, repo, service, handler, route — hepsi bir arada</div>
+          </div>
+          <div class="wcard" onclick="setMode('explain',document.querySelectorAll('.mb')[1]);quick('services/auth_service.go dosyasini acikla')">
+            <div class="wci">📖</div>
+            <div class="wct">Dosya Açıkla</div>
+            <div class="wcd">Mevcut kodu RAG ile bul, Türkçe anlat</div>
+          </div>
+          <div class="wcard" onclick="setMode('debug',document.querySelectorAll('.mb')[2]);quick('Asagidaki kodu incele, hatalari ve guvenlik aciklari bul:\n\n// kodunu buraya yapistir')">
+            <div class="wci">🐛</div>
+            <div class="wct">Hata Bul</div>
+            <div class="wcd">Bug, race condition, güvenlik açığı</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK BAR -->
+    <div class="qbar">
+      <span style="font-size:10px;color:var(--text-muted);align-self:center;white-space:nowrap;font-weight:600">Hızlı:</span>
+      <div class="qchip" onclick="quick('Zatrano mimari yapisini katman katman acikla')">🗺️ Mimari</div>
+      <div class="qchip" onclick="quick('Yeni CRUD modulu adim adim nasil eklenir?')">📋 CRUD</div>
+      <div class="qchip" onclick="quick('txmanager ile transaction kullanimi, ornek servis kodu')">🔄 Transaction</div>
+      <div class="qchip" onclick="quick('packages/cache GetOrSet kullanimi ornegi')">💾 Cache</div>
+      <div class="qchip" onclick="quick('/api/v1 altina JWT korumali endpoint ekle')">🔌 API</div>
+      <div class="qchip" onclick="quick('i18n handler ve template ornekleri')">🌍 i18n</div>
+      <div class="qchip" onclick="quick('auditlog CRUD isleminde nasil kullanilir?')">📋 Audit</div>
+    </div>
+
+    <!-- INPUT -->
+    <div class="iarea">
+      <div class="iwrap">
+        <textarea id="inp" rows="1"
+          placeholder="Soru sor, kod üret, açıkla... (Enter = gönder, Shift+Enter = yeni satır)"
+          oninput="resize(this)"
+          onkeydown="onkey(event)"></textarea>
+        <button class="sbtn" id="sbtn" onclick="send()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+var mode       = 'generate';
+var streaming  = false;
+var welcome    = true;
+var histItems  = [];
+var lastMsg    = '';
+var autoWrite  = false;
+// Store last parsed files from generation for deferred write
+var lastFiles  = [];
+
+// ── Status ──────────────────────────────────────────────────────────────────
+async function checkStatus() {
+  try {
+    var r = await fetch('/api/status');
+    var d = await r.json();
+    document.getElementById('dot').className   = 'dot' + (d.ollama_ok ? ' on' : '');
+    document.getElementById('stxt').textContent = d.ollama_ok ? 'Bağlı' : 'Ollama Kapalı';
+    document.getElementById('mbadge').textContent = d.model || '—';
+    document.getElementById('fbadge').textContent = (d.rag_docs || d.file_count || 0) + ' dosya';
+    autoWrite = d.auto_write || false;
+    updateAutoWriteUI();
+  } catch(e) {
+    document.getElementById('dot').className = 'dot';
+    document.getElementById('stxt').textContent = 'Bağlanamadı';
+  }
+}
+checkStatus();
+setInterval(checkStatus, 15000);
+
+// ── Auto-write toggle ────────────────────────────────────────────────────────
+async function toggleAutoWrite() {
+  autoWrite = !autoWrite;
+  await fetch('/api/autowrite', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({enabled: autoWrite})
+  });
+  updateAutoWriteUI();
+  showToast(autoWrite ? '✍️ Auto-Write AÇIK — kod direkt diske yazılacak' : '⏸️ Auto-Write KAPALI', autoWrite ? 'success' : '');
+}
+
+function updateAutoWriteUI() {
+  var badge = document.getElementById('awbadge');
+  var btn   = document.getElementById('awBtn');
+  badge.className = 'autowrite-badge' + (autoWrite ? ' active' : '');
+  btn.innerHTML   = (autoWrite ? '💾 Auto-Write: AÇIK' : '💾 Auto-Write: KAPALI');
+}
+
+// ── Mode ──────────────────────────────────────────────────────────────────────
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mb').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+// ── Input ─────────────────────────────────────────────────────────────────────
+function resize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+}
+function onkey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+function quick(t) {
+  document.getElementById('inp').value = t;
+  resize(document.getElementById('inp'));
+  send();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(function() { t.className = 'toast'; }, 2800);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\t/g,'    ');
+}
+
+function render(text) {
+  var bt = String.fromCharCode(96);
+  var fence = bt + bt + bt;
+  var fenceRe = new RegExp(fence + '(\\w*)\\n?([\\s\\S]*?)' + fence, 'g');
+  var h = text.replace(fenceRe, function(_, lang, code) {
+    var l = lang || 'go';
+    var id = 'c' + Math.random().toString(36).substr(2,6);
+    return '<div class="cb">' +
+      '<div class="ch"><span class="clang">' + l + '</span>' +
+      '<div class="ch-right">' +
+      '<button class="cpbtn" onclick="cp(\'' + id + '\')">📋 Kopyala</button>' +
+      '</div></div>' +
+      '<div class="cc" id="' + id + '">' + esc(code.trim()) + '</div></div>';
+  });
+  h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  var inlineRe = new RegExp(bt + '([^' + bt + ' ][^' + bt + ']*)' + bt, 'g');
+  h = h.replace(inlineRe, '<code>$1</code>');
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+
+function cp(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(function() {
+    var btn = el.previousElementSibling.querySelector('.cpbtn');
+    btn.textContent = '✅ Kopyalandı';
+    setTimeout(function() { btn.textContent = '📋 Kopyala'; }, 2000);
+    showToast('Kopyalandı!', 'success');
+  });
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+function hideWelcome() {
+  if (welcome) {
+    var w = document.getElementById('welcome');
+    if (w) w.remove();
+    welcome = false;
+  }
+}
+
+function sysMsg(t) {
+  var d = document.createElement('div');
+  d.className = 'sysmsg';
+  d.textContent = t;
+  document.getElementById('msgs').appendChild(d);
+  scrollMsgs();
+}
+
+function scrollMsgs() {
+  var m = document.getElementById('msgs');
+  m.scrollTop = m.scrollHeight;
+}
+
+function addMsg(role, text) {
+  hideWelcome();
+  var msgs = document.getElementById('msgs');
+  var d = document.createElement('div');
+  d.className = 'msg ' + role;
+  var av     = role === 'user' ? '👤' : '⚡';
+  var sender = role === 'user' ? 'SEN' : 'ZATRANO AI';
+  d.innerHTML =
+    '<div class="av">' + av + '</div>' +
+    '<div class="mbody">' +
+    '<div class="msender">' + sender + '</div>' +
+    '<div class="bubble">' + render(text) + '</div>' +
+    '</div>';
+  msgs.appendChild(d);
+  scrollMsgs();
+  return d.querySelector('.bubble');
+}
+
+function addTyping() {
+  hideWelcome();
+  var msgs = document.getElementById('msgs');
+  var d = document.createElement('div');
+  d.className = 'msg agent'; d.id = 'typing';
+  d.innerHTML =
+    '<div class="av">⚡</div>' +
+    '<div class="mbody"><div class="msender">ZATRANO AI</div>' +
+    '<div class="bubble"><div class="typing">' +
+    '<div class="td"></div><div class="td"></div><div class="td"></div>' +
+    '</div></div></div>';
+  msgs.appendChild(d);
+  scrollMsgs();
+}
+
+// ── Files Panel ───────────────────────────────────────────────────────────────
+function buildFilesPanel(files, diffs) {
+  if (!files || files.length === 0) return '';
+
+  // Store for write-all
+  lastFiles = files.map(function(f, i) {
+    return { path: f.path, content: '', lang: f.lang };
+  });
+
+  var html = '<div class="files-panel">';
+  html += '<div class="files-title">⚡ ' + files.length + ' DOSYA ÜRETİLDİ</div>';
+
+  files.forEach(function(f, i) {
+    var d = diffs && diffs[i];
+    var badge = '';
+    if (d) {
+      if (d.is_new)     badge = '<span class="diff-badge new">YENİ</span>';
+      else if (d.adds === 0 && d.dels === 0) badge = '<span class="diff-badge same">DEĞİŞİKLİK YOK</span>';
+      else badge = '<span class="diff-badge add">+' + d.adds + '</span><span class="diff-badge del">-' + d.dels + '</span>';
+    }
+
+    html += '<div class="file-row">';
+    html += '<div class="file-path">📄 ' + f.path + ' ' + badge + '</div>';
+    html += '<div class="file-actions">';
+    if (d && d.html) {
+      html += '<button class="file-btn diff" onclick="showDiffPanel(this, ' + i + ')">Diff</button>';
+    }
+    html += '<button class="file-btn write" onclick="writeOne(' + i + ', this)">Yaz</button>';
+    html += '</div></div>';
+
+    // Diff container
+    if (d && d.html) {
+      html += '<div class="diff-panel" id="dp' + i + '" style="display:none">';
+      html += '<div class="diff-content open">' + d.html + '</div>';
+      html += '</div>';
+    }
+  });
+
+  html += '<button class="write-all-btn" onclick="writeAll()">⚡ Tümünü Diske Yaz</button>';
+  html += '</div>';
+  return html;
+}
+
+function showDiffPanel(btn, idx) {
+  var panel = document.getElementById('dp' + idx);
+  if (!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'Diff' : 'Gizle';
+}
+
+// ── Write ─────────────────────────────────────────────────────────────────────
+async function writeOne(idx, btn) {
+  if (!lastFiles[idx] || !lastFiles[idx].content) {
+    showToast('Dosya içeriği bulunamadı. Önce Diff\'e bakın.', 'error');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    var r = await fetch('/api/write', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ files: [lastFiles[idx]] })
+    });
+    var d = await r.json();
+    var res = d.results && d.results[0];
+    if (res && res.written) {
+      btn.textContent = '✅';
+      showToast('✅ ' + lastFiles[idx].path + ' yazıldı', 'success');
+    } else {
+      btn.textContent = '❌';
+      showToast('Yazma hatası: ' + (res && res.error || '?'), 'error');
+    }
+  } catch(e) {
+    btn.textContent = '❌';
+    showToast('Bağlantı hatası', 'error');
+  }
+}
+
+async function writeAll() {
+  var toWrite = lastFiles.filter(function(f) { return f.content; });
+  if (toWrite.length === 0) {
+    showToast('Yazılacak içerik bulunamadı.', 'error');
+    return;
+  }
+  try {
+    var r = await fetch('/api/write', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ files: toWrite })
+    });
+    var d = await r.json();
+    var ok = (d.results || []).filter(function(r) { return r.written; }).length;
+    showToast('✅ ' + ok + ' dosya yazıldı', 'success');
+    sysMsg('✅ ' + ok + ' dosya diske yazıldı.');
+  } catch(e) {
+    showToast('Yazma hatası: ' + e.message, 'error');
+  }
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function addToHistory(msg) {
+  histItems.unshift({ title: msg.length > 40 ? msg.substring(0, 40) + '...' : msg, mode: mode });
+  if (histItems.length > 20) histItems.pop();
+  var hist = document.getElementById('hist');
+  hist.innerHTML = '<div class="sb-lbl">Geçmiş</div>';
+  histItems.forEach(function(item) {
+    var d = document.createElement('div');
+    d.className = 'hi';
+    d.innerHTML = '<div class="hi-title">' + item.title + '</div>' +
+      '<div class="hi-meta">' + item.mode + '</div>';
+    hist.appendChild(d);
+  });
+}
+
+// ── Send ──────────────────────────────────────────────────────────────────────
+async function send() {
+  if (streaming) return;
+  var inp  = document.getElementById('inp');
+  var text = inp.value.trim();
+  if (!text) return;
+
+  lastMsg   = text;
+  lastFiles = [];
+  addMsg('user', text);
+  addToHistory(text);
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  streaming = true;
+  document.getElementById('sbtn').disabled = true;
+  addTyping();
+
+  try {
+    var resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, mode: mode })
+    });
+
+    var typingEl = document.getElementById('typing');
+    if (typingEl) typingEl.remove();
+
+    if (!resp.ok) {
+      addMsg('agent', '❌ Sunucu hatası: HTTP ' + resp.status);
+      return;
+    }
+
+    var bubble = addMsg('agent', '');
+    bubble.innerHTML = '';
+    var full       = '';
+    var filesPanel = null;
+
+    var reader = resp.body.getReader();
+    var dec    = new TextDecoder();
+    var buf    = '';
+
+    while (true) {
+      var res = await reader.read();
+      if (res.done) break;
+      buf += dec.decode(res.value, { stream: true });
+      var lines = buf.split('\n');
+      buf = lines.pop();
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (!line.startsWith('data: ')) continue;
+        try {
+          var data = JSON.parse(line.slice(6));
+
+          if (data.error) { full += '\n\n❌ Hata: ' + data.error; break; }
+          if (data.done) break;
+
+          if (data.token) {
+            full += data.token;
+            bubble.innerHTML = render(full);
+            scrollMsgs();
+          }
+
+          // Files + diffs arrived
+          if (data.files && data.files.length > 0) {
+            // Extract code blocks from full response and store
+            data.files.forEach(function(f, idx) {
+              lastFiles[idx] = { path: f.path, content: extractCodeForPath(full, f.path), lang: f.lang };
+            });
+            var panel = buildFilesPanel(data.files, data.diffs);
+            if (panel) {
+              var div = document.createElement('div');
+              div.innerHTML = panel;
+              bubble.parentElement.appendChild(div.firstChild);
+              filesPanel = div;
+            }
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Action buttons
+    var d = document.createElement('div');
+    d.className = 'abts';
+    d.innerHTML =
+      '<button class="abt p" onclick="copyAll(this)">📋 Tamamını Kopyala</button>' +
+      '<button class="abt s" onclick="regen()">🔄 Tekrar Üret</button>';
+    bubble.parentElement.appendChild(d);
+
+  } catch(e) {
+    var typingEl2 = document.getElementById('typing');
+    if (typingEl2) typingEl2.remove();
+    addMsg('agent', '❌ Bağlantı hatası: ' + e.message);
+  } finally {
+    streaming = false;
+    document.getElementById('sbtn').disabled = false;
+  }
+}
+
+// Extract code block content for a given file path from the response
+function extractCodeForPath(text, path) {
+  var bt = String.fromCharCode(96);
+  var fence = bt + bt + bt;
+  var fenceRe = new RegExp(fence + '\\w*\\n?([\\s\\S]*?)' + fence, 'g');
+  var lines = text.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (line.indexOf(path) !== -1 && (line.startsWith('//') || line.startsWith('#'))) {
+      // Find next code block
+      var rest = lines.slice(i).join('\n');
+      var m = rest.match(new RegExp(fence + '\\w*\\n([\\s\\S]*?)' + fence));
+      if (m) return m[1].trim();
+    }
+  }
+  return '';
+}
+
+async function regen() {
+  if (!lastMsg) return;
+  document.getElementById('inp').value = lastMsg;
+  send();
+}
+
+function copyAll(btn) {
+  var b = btn.closest('.mbody').querySelector('.bubble');
+  navigator.clipboard.writeText(b.innerText).then(function() {
+    btn.textContent = '✅ Kopyalandı';
+    setTimeout(function() { btn.textContent = '📋 Tamamını Kopyala'; }, 2000);
+    showToast('Kopyalandı!', 'success');
+  });
+}
+
+async function clearHistory() {
+  await fetch('/api/clear', { method: 'POST' });
+  sysMsg('🗑️ Konuşma geçmişi temizlendi.');
+  histItems = [];
+  document.getElementById('hist').innerHTML = '<div class="sb-lbl">Geçmiş</div>';
+}
+
+async function reloadProject() {
+  sysMsg('🔄 Proje yeniden yükleniyor...');
+  var r = await fetch('/api/reload', { method: 'POST' });
+  var d = await r.json();
+  if (d.error) {
+    sysMsg('❌ ' + d.error);
+    showToast(d.error, 'error');
+  } else {
+    sysMsg('✅ Proje ve RAG indeksi yeniden yüklendi.');
+    showToast('Proje yeniden yüklendi', 'success');
+    checkStatus();
+  }
+}
+</script>
+</body>
+</html>
